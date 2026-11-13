@@ -169,13 +169,16 @@
                         {{ $message }}
                     </p>
                 @enderror
-
+                
                 <!-- Individual tag validation errors -->
-                @foreach ($errors->get('tags.*') as $message)
-                    <p class="mt-2 text-sm text-red-600">
-                        {{ $message }}
-                    </p>
+                @foreach ($errors->get('tags.*') as $messages)
+                    @foreach ($messages as $message)
+                        <p class="mt-2 text-sm text-red-600">
+                            {{ $message }}
+                        </p>
+                    @endforeach
                 @endforeach
+
 
             </div>
 
