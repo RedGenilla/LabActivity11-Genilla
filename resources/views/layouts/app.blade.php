@@ -13,6 +13,7 @@
 
     <!-- Main navigation -->
     <header class="bg-blue-800 text-white shadow">
+
         <nav class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-5">
 
             <a href="{{ route('posts.index') }}"
@@ -20,7 +21,7 @@
                 Barangay Bulletin - Purok Genilla
             </a>
 
-            <div class="flex items-center gap-4">
+            <div class="flex flex-wrap items-center gap-4">
 
                 @guest
                     <a href="{{ route('login') }}"
@@ -30,10 +31,22 @@
                 @endguest
 
                 @auth
+
+                    <!-- New Post: authors only -->
+                    @if (Auth::user()->author()->exists())
+
+                        <a href="{{ route('posts.create') }}"
+                           class="rounded bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700">
+                            New Post
+                        </a>
+
+                    @endif
+
                     <span class="text-sm">
                         Welcome, {{ Auth::user()->name }}
                     </span>
 
+                    <!-- Logout form -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
 
@@ -43,15 +56,19 @@
                             Logout
                         </button>
                     </form>
+
                 @endauth
 
             </div>
+
         </nav>
+
     </header>
 
-    <!-- Success messages -->
+    <!-- Main page content -->
     <main class="mx-auto max-w-6xl px-4 py-8">
 
+        <!-- Flash success message -->
         @if (session('status'))
             <div class="mb-6 rounded bg-green-100 p-4 text-green-800">
                 {{ session('status') }}
@@ -69,3 +86,4 @@
 
 </body>
 </html>
+

@@ -17,7 +17,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])
 Route::post('/login', [AuthController::class, 'login'])
     ->middleware('guest');
 
-// Logout route for authenticated users.
+// Logout for authenticated users.
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -26,7 +26,17 @@ Route::post('/logout', [AuthController::class, 'logout'])
 Route::get('/posts', [PostController::class, 'index'])
     ->name('posts.index');
 
-// Only logged-in users may submit comments.
+// New post form for authenticated users.
+Route::get('/posts/create', [PostController::class, 'create'])
+    ->middleware('auth')
+    ->name('posts.create');
+
+// Save a new post.
+Route::post('/posts', [PostController::class, 'store'])
+    ->middleware('auth')
+    ->name('posts.store');
+
+// Save a comment on an existing post.
 Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
     ->middleware('auth')
     ->name('comments.store');
@@ -38,4 +48,5 @@ Route::get('/posts/{id}', [PostController::class, 'show'])
 // Display an author's profile.
 Route::get('/authors/{author}', [AuthorController::class, 'show'])
     ->name('authors.show');
+
 
