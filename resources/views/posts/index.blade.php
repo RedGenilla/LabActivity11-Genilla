@@ -11,17 +11,18 @@
         <h1 class="text-3xl font-bold text-blue-900">
             Barangay Bulletin
         </h1>
+
         <p class="mt-2 text-gray-600">
             Latest announcements from Purok Genilla.
         </p>
     </div>
 
-    <!-- Search and category filter -->
+    <!-- Search, category, and tag filters -->
     <form method="GET"
           action="{{ route('posts.index') }}"
-          class="flex flex-col sm:flex-row gap-3 bg-white p-4 rounded-lg shadow">
+          class="flex flex-col gap-3 rounded-lg bg-white p-4 shadow md:flex-row">
 
-        <!-- Search by post title -->
+        <!-- Search -->
         <input
             type="text"
             name="q"
@@ -30,37 +31,51 @@
             class="w-full rounded border border-gray-300 px-4 py-2"
         >
 
-        <!-- Filter by category -->
+        <!-- Category filter -->
         <select
             name="category"
-            class="w-full sm:w-56 rounded border border-gray-300 px-4 py-2"
+            class="w-full rounded border border-gray-300 px-4 py-2"
         >
             <option value="">All Categories</option>
 
             @foreach ($categories as $category)
                 <option value="{{ $category }}"
-                    {{ request('category') == $category ? 'selected' : '' }}>
+                    @selected(request('category') == $category)>
                     {{ $category }}
                 </option>
             @endforeach
         </select>
 
-        <button
-            type="submit"
-            class="rounded bg-blue-800 px-6 py-2 text-white hover:bg-blue-900">
+        <!-- Tag filter -->
+        <select
+            name="tag"
+            class="w-full rounded border border-gray-300 px-4 py-2"
+        >
+            <option value="">All Tags</option>
+
+            @foreach ($tags as $tag)
+                <option value="{{ $tag->name }}"
+                    @selected(request('tag') == $tag->name)>
+                    {{ $tag->name }}
+                </option>
+            @endforeach
+        </select>
+
+        <button type="submit"
+                class="rounded bg-blue-800 px-6 py-2 text-white hover:bg-blue-900">
             Filter
         </button>
     </form>
 
     <!-- Bulletin posts -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
 
         @forelse ($posts as $post)
 
             <article class="rounded-lg bg-white p-5 shadow">
 
-                <!-- Category and pinned badge -->
-                <div class="mb-3 flex flex-wrap items-center gap-2">
+                <!-- Category and pinned status -->
+                <div class="mb-3 flex flex-wrap gap-2">
 
                     <span class="rounded bg-blue-100 px-3 py-1 text-sm text-blue-800">
                         {{ $post->category }}
@@ -82,18 +97,43 @@
                     </a>
                 </h2>
 
+                <!-- Author -->
+                <p class="mt-3 text-sm text-gray-600">
+                    Posted by:
+
+                    @if ($post->author)
+                        <a href="{{ route('authors.show', $post->author->id) }}"
+                           class="font-semibold text-blue-700 hover:underline">
+                            {{ $post->author->name }}
+                        </a>
+                    @else
+                        Unknown Author
+                    @endif
+                </p>
+
+                <!-- Tags -->
+                <div class="mt-3 flex flex-wrap gap-2">
+                    @foreach ($post->tags as $tag)
+                        <a href="{{ route('posts.index', ['tag' => $tag->name]) }}"
+                           class="rounded-full bg-green-100 px-3 py-1 text-xs text-green-800 hover:bg-green-200">
+                            {{ $tag->name }}
+                        </a>
+                    @endforeach
+                </div>
+
                 <!-- Publication date -->
-                <p class="mt-2 text-sm text-gray-500">
+                <p class="mt-3 text-sm text-gray-500">
                     Published:
                     {{ $post->published_at?->format('M d, Y') ?? 'N/A' }}
                 </p>
 
-                <!-- View counter -->
-                <p class="mt-1 text-sm text-gray-500">
-                    Views: {{ $post->views }}
-                </p>
+                <!-- Views and comments -->
+                <div class="mt-2 flex gap-5 text-sm text-gray-500">
+                    <span>Views: {{ $post->views }}</span>
+                    <span>Comments: {{ $post->comments_count }}</span>
+                </div>
 
-                <!-- Link to full announcement -->
+                <!-- Read post -->
                 <a href="{{ route('posts.show', $post->id) }}"
                    class="mt-4 inline-block font-medium text-blue-700 hover:underline">
                     Read Announcement
@@ -102,11 +142,9 @@
             </article>
 
         @empty
-
             <p class="text-gray-600 md:col-span-2">
                 No posts match your search.
             </p>
-
         @endforelse
 
     </div>
@@ -116,10 +154,9 @@
         {{ $posts->links() }}
     </div>
 
-    <!-- Pagination summary -->
     <p class="text-sm text-gray-600">
         Showing {{ $posts->firstItem() ?? 0 }}
-        –{{ $posts->lastItem() ?? 0 }}
+        - {{ $posts->lastItem() ?? 0 }}
         of {{ $posts->total() }} posts
     </p>
 

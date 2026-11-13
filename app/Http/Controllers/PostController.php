@@ -3,20 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use App\Models\Tag;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
-    /**
-     * Display published bulletin posts.
-     */
+    // Display published bulletin posts.
     public function index(Request $request)
     {
-        // Start a query that only includes published posts.
+        // Load authors, tags, and comment counts.
         $query = Post::query()
+            ->with(['author', 'tags'])
+            ->withCount('comments')
             ->where('is_published', true);
 
-        // Search post titles when a search term is provided.
+        // Search post titles.
         if ($request->filled('q')) {
             $query->where(
                 'title',
@@ -25,7 +26,7 @@ class PostController extends Controller
             );
         }
 
-        // Filter by category when one is selected.
+        // Filter posts by category.
         if ($request->filled('category')) {
             $query->where(
                 'category',
@@ -33,46 +34,62 @@ class PostController extends Controller
             );
         }
 
-        // Display pinned posts first, followed by newest posts.
-        // Genilla has 7 letters, so show 7 posts per page.
+        // Filter posts by tag name.
+        if ($request->filled('tag')) {
+            $query->whereHas('tags', function ($tagQuery) use ($request) {
+                $tagQuery->where(
+                    'name',
+                    $request->input('tag')
+                );
+            });
+        }
+
+        // Keep pinned posts first and show 7 per page.
         $posts = $query
             ->orderByDesc('is_pinned')
             ->latest('published_at')
             ->paginate(7)
             ->withQueryString();
 
-        // Retrieve available categories for the filter dropdown.
+        // Categories available for filtering.
         $categories = Post::query()
+            ->where('is_published', true)
             ->distinct()
             ->orderBy('category')
             ->pluck('category');
 
-        // Pass the posts and categories to the Blade view.
-        return view('posts.index', compact('posts', 'categories'));
+        // Available tags for filtering.
+        $tags = Tag::orderBy('name')->get();
+
+        return view('posts.index', compact(
+            'posts',
+            'categories',
+            'tags'
+        ));
     }
-    
-    /**
-     * Display a single published bulletin post.
-     */
+
+    // Display a single published post.
     public function show($id)
     {
-        // Find the post by its ID.
-        // If the post does not exist, return a 404 error.
         $post = Post::findOrFail($id);
 
-        // Draft posts should not be visible to residents.
+        // Hide draft posts.
         if (!$post->is_published) {
             abort(404);
         }
 
-        // Increase the view counter by one.
+        // Keep the Lab 10 view counter.
         $post->views = $post->views + 1;
-
-        // Save the updated view count to the database.
         $post->save();
 
-        // Display the selected post using the show Blade view.
+        // Load related data after finding the post.
+        $post->load([
+            'author',
+            'tags',
+            'comments' => fn ($query) => $query->latest(),
+            'comments.user',
+        ]);
+
         return view('posts.show', compact('post'));
     }
 }
-
