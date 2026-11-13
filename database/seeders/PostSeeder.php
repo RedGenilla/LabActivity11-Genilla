@@ -4,59 +4,45 @@ namespace Database\Seeders;
 
 use App\Models\Author;
 use App\Models\Post;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class PostSeeder extends Seeder
 {
     public function run(): void
     {
-        // Retrieve all five existing authors.
+        // Get the five existing authors.
         $authors = Author::all();
 
-        // Generate 40 published posts.
-        // Assign each post to a random existing author.
+        // Generate 40 published bulletin posts.
         Post::factory()->count(40)
             ->sequence(fn ($sequence) => [
                 'author_id' => $authors->random()->id,
             ])
             ->create();
 
-        // Generate 10 draft posts.
-        // The draft() state makes them unpublished.
+        // Generate 10 unpublished draft posts.
         Post::factory()->count(10)->draft()
             ->sequence(fn ($sequence) => [
                 'author_id' => $authors->random()->id,
             ])
             ->create();
 
-        // Find my personalized Kagawad.
+        // Find the personalized Kagawad.
         $kagawad = Author::where(
             'email',
             'kagawad.genilla@bulletin.test'
         )->firstOrFail();
 
-        // Create my personalized pinned post manually.
+        // Create the personalized pinned announcement.
         Post::create([
             'author_id' => $kagawad->id,
             'title' => 'Purok Genilla Clean-up Drive',
             'category' => 'Announcement',
-
-            // Content of the community announcement.
-            'body' => 'Residents of Purok Genilla are invited to join our community clean-up drive. Everyone is encouraged to participate in keeping our neighborhood clean and safe.',
-
-            // Make the post visible to residents.
+            'body' => 'In celebration of Kagawad Red Genilla\'s birthday on September 15, 2026, residents of Purok Genilla are invited to join a community clean-up drive. Everyone is encouraged to participate and help keep our neighborhood clean and safe.',
             'is_published' => true,
-
-            // Display this announcement before regular posts.
             'is_pinned' => true,
-
-            // TODO: Change this to your birthday in 2026.
             'published_at' => '2026-09-15 08:00:00',
-
-            // New posts start with zero views.
             'views' => 0,
         ]);
     }
 }
-

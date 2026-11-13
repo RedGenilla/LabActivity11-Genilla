@@ -11,10 +11,10 @@ class CommentSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get all available users.
+        // Retrieve the seeded users.
         $users = User::all();
 
-        // Give published non-pinned posts 0 to 5 comments.
+        // Give each regular published post 0 to 5 comments.
         $posts = Post::where('is_published', true)
             ->where('is_pinned', false)
             ->get();
@@ -30,30 +30,35 @@ class CommentSeeder extends Seeder
             }
         }
 
-        // Find the pinned Clean-up Drive post.
+        // Find the personalized pinned post.
         $pinnedPost = Post::where('is_pinned', true)
             ->where('is_published', true)
             ->firstOrFail();
 
-        // Find Lola Genilla.
+        // Find Lola Genilla's account.
         $lola = User::where(
             'email',
             'lola.genilla@bulletin.test'
         )->firstOrFail();
 
-        // Lola must comment on the pinned post.
+        // Lola must comment on the pinned announcement.
         Comment::factory()
             ->for($pinnedPost)
             ->for($lola)
             ->create();
 
-        // Add two more comments to the pinned post.
+        // Add two other comments to the pinned post.
+        $otherUsers = $users
+            ->where('id', '!=', $lola->id)
+            ->values();
+
         for ($i = 0; $i < 2; $i++) {
             Comment::factory()
                 ->for($pinnedPost)
-                ->for($users->random())
+                ->for($otherUsers->random())
                 ->create();
         }
     }
 }
+
 

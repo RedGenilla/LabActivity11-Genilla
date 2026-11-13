@@ -1,58 +1,36 @@
 # Barangay Bulletin - Purok Genilla
 
-Lab Activity 11 - Relationships, Eager Loading & Form Requests
+**Lab Activity 11:** Relationships, Eager Loading & Form Requests
 
 **Student:** Red Isaac D. Genilla
 **Course:** Full-Stack Web Development
 **Framework:** Laravel 12
 
-## Project Description
+## Project Overview
 
 Barangay Bulletin - Purok Genilla is a Laravel web application
-for viewing and publishing community announcements.
+for publishing community announcements.
 
-Residents can browse posts, search announcements, filter by
-category or tag, and submit comments after logging in.
+Visitors can browse published posts, search announcements,
+filter by category or tag, and view author profiles.
 
-Users with an author profile can create new bulletin posts.
+Logged-in residents can submit comments. Users with an author
+profile can create and publish posts or save drafts.
 
-This activity builds on my Lab Activity 10 project by adding
-Eloquent relationships, eager loading, Form Request validation,
-authentication, and comment functionality.
-
-## Features
-
-- Display published bulletin posts
-- Pinned announcements appear first
-- Search posts by title
-- Filter posts by category and tag
-- Pagination with 7 posts per page
-- Display author names and profiles
-- Show comment counts on bulletin cards
-- Display comments with resident names
-- Allow logged-in residents to comment
-- Allow authors to create and publish posts
-- Save unpublished posts as drafts
-- Validate forms using Form Request classes
-- Show validation errors and preserve old inputs
-- Prevent residents from creating posts
-- Use eager loading to avoid N+1 queries
-- Responsive interface using Tailwind CSS
+This project extends Lab Activity 10 using additional Eloquent
+relationships, eager loading, authentication, and Form Requests.
 
 ## Personalization
 
 - Site Title: Barangay Bulletin - Purok Genilla
 - Kagawad: Red Genilla
-- Kagawad Email: kagawad.genilla@bulletin.test
 - Resident: Lola Genilla
 - Posts Per Page: 7
 - Custom Category: Events
 - Pinned Post: Purok Genilla Clean-up Drive
-- Personalized Date: September 15, 2026
+- Personalized Post Date: September 15, 2026
 
 ## Categories
-
-The application uses these five categories:
 
 1. Announcement
 2. Health
@@ -62,191 +40,244 @@ The application uses these five categories:
 
 ## Tags
 
-The five seeded tags are:
-
 1. Purok Genilla
 2. Urgent
 3. Libre
 4. Schedule
 5. Events
 
-Posts can have multiple tags. Tags are connected to posts
-through the post_tag pivot table.
+The pinned post has the Purok Genilla and Urgent tags.
+
+## Features
+
+- Published bulletin listing
+- Pinned announcements shown first
+- Search posts by title
+- Category and tag filtering
+- Pagination with seven posts per page
+- Author profile pages
+- Post view counter
+- Comments and comment counts
+- Resident login and logout
+- Authenticated comment submission
+- Kagawad-only post creation
+- Published and draft posts
+- Form Request validation
+- Error messages and old input restoration
+- Responsive interface using Tailwind CSS
 
 ## Seeded Login Accounts
 
-### Kagawad Account
+### Kagawad Red Genilla
 
 Email: kagawad.genilla@bulletin.test
 
 Password: bulletin2026
 
-This account has an author profile and can create bulletin posts
-and submit comments.
+Permissions:
+- View announcements
+- Submit comments
+- Create published posts
+- Save draft posts
 
-### Resident Account
+### Lola Genilla
 
 Email: lola.genilla@bulletin.test
 
 Password: bulletin2026
 
-This account can browse announcements and comment, but cannot
-create bulletin posts.
+Permissions:
+- View announcements
+- Submit comments
+- Cannot create posts
 
-Both accounts are sample accounts for this lab activity.
+These are sample accounts for this laboratory activity.
 
 ## Eloquent Relationships
 
-### User and Author - hasOne / belongsTo
+### User
 
-A User hasOne Author, while Author belongsTo User.
+- author(): hasOne(Author)
+- comments(): hasMany(Comment)
 
-This relationship links a login account to an author profile.
-It allows the application to determine whether a logged-in
-user has permission to create posts.
+### Author
 
-### User and Comment - hasMany / belongsTo
+- user(): belongsTo(User)
+- posts(): hasMany(Post)
+- comments(): hasManyThrough(Comment, Post)
 
-A User hasMany Comments, while Comment belongsTo User.
+### Post
 
-This relationship identifies the resident who wrote a comment.
+- author(): belongsTo(Author)
+- comments(): hasMany(Comment)
+- tags(): belongsToMany(Tag)
 
-### Author and Post - hasMany / belongsTo
+### Comment
 
-An Author hasMany Posts, while Post belongsTo Author.
+- post(): belongsTo(Post)
+- user(): belongsTo(User)
 
-This allows one author to create multiple bulletin posts.
-The author_id foreign key identifies the author of each post.
+### Tag
 
-### Post and Comment - hasMany / belongsTo
+- posts(): belongsToMany(Post)
 
-A Post hasMany Comments, while Comment belongsTo Post.
+These 11 relationship methods connect users, authors,
+posts, comments, and tags.
 
-This allows residents to leave multiple comments on one post.
-
-### Post and Tag - belongsToMany
-
-Post and Tag both use belongsToMany.
-
-The post_tag pivot table connects posts with tags.
-The sync() method assigns selected tags to posts.
-
-### Author and Comment - hasManyThrough
-
-Author hasManyThrough Comment using Post.
-
-This allows the author page to count all comments received
-across the author's bulletin posts.
+The post_tag pivot table connects multiple tags to posts.
+It uses a composite primary key.
 
 ## Eager Loading
 
-The application uses with(), load(), and withCount().
+The bulletin listing uses:
 
-The bulletin listing eager-loads authors and tags and retrieves
-comment counts.
+- with(['author', 'tags'])
+- withCount('comments')
 
-The post detail page loads the author, tags, comments, and
-the users who wrote those comments.
+The individual post page uses load() for the author, tags,
+comments, and comment users.
 
 preventLazyLoading() is enabled during development to help
-detect unnecessary lazy-loading queries.
+detect unnecessary database queries.
 
-## Database
+## Form Request Validation
+
+### StoreCommentRequest
+
+- User must be logged in
+- Comment is required
+- Minimum 3 characters
+- Maximum 1000 characters
+- Custom minimum-length validation message
+
+### StorePostRequest
+
+- User must have an author profile
+- Title required, maximum 120 characters
+- Body required, minimum 20 characters
+- Category must be valid
+- At least one tag required
+- Tag IDs must exist in the database
+- Publishing status must be boolean
+
+### LoginRequest
+
+- Email required and valid
+- Password required
+
+Forms use CSRF protection, validation error messages,
+old input restoration, and checked checkbox restoration.
+
+## Database and Seeding
 
 The application uses SQLite.
 
-A fresh seed creates:
+Running migrations and seeders creates:
 
 - 5 authors
 - 10 users
 - 51 posts
 - 41 published posts
-- 10 drafts
+- 10 draft posts
 - 5 tags
 - Random comments on published posts
 
-The pinned post receives 3 comments, including one from
-Lola Genilla.
+The pinned post receives three seeded comments,
+including one from Lola Genilla.
 
-The new tables include comments, tags, and post_tag.
-The authors table also receives a nullable user_id foreign key.
+The database contains:
+
+- users
+- authors
+- posts
+- comments
+- tags
+- post_tag
 
 ## How to Run
 
-Requirements:
+Open the project folder in VS Code.
 
-- PHP and Composer
-- Node.js and npm
-- SQLite support for PHP
+Install PHP dependencies:
 
-1. Open a terminal in the project directory.
+    composer install
 
-2. Install PHP dependencies:
+Copy the environment file if it does not exist:
 
-   composer install
+    Copy-Item .env.example .env
 
-3. Copy the environment file:
+Generate the application key:
 
-   Windows PowerShell:
-   Copy-Item .env.example .env
+    php artisan key:generate
 
-   Git Bash:
-   cp .env.example .env
+Set the following in .env:
 
-4. Generate the application key:
+    DB_CONNECTION=sqlite
 
-   php artisan key:generate
+Create database/database.sqlite if it does not exist:
 
-5. In .env, configure:
+    New-Item database/database.sqlite -ItemType File
 
-   DB_CONNECTION=sqlite
+Run migrations and seeders:
 
-6. Create database/database.sqlite if it does not exist.
+    php artisan migrate:fresh --seed
 
-   In PowerShell:
-   New-Item -Path database/database.sqlite -ItemType File
+WARNING: This command resets the connected database.
 
-7. Run migrations and seeders:
+Install frontend dependencies:
 
-   php artisan migrate:fresh --seed
+    npm.cmd install
 
-8. Install frontend dependencies:
+Start Laravel:
 
-   npm.cmd install
+    php artisan serve
 
-9. Start Laravel:
-
-   php artisan serve
-
-10. Open another terminal and start Vite:
+Start Vite in another terminal:
 
     npm.cmd run dev
 
-11. Visit:
+Open:
 
-    http://127.0.0.1:8000/posts
+http://127.0.0.1:8000/posts
 
-## Routes
+## Main Routes
 
-GET /posts - Browse published posts
+GET /posts
+GET /posts/{id}
+GET /authors/{author}
+GET /login
+POST /login
+POST /logout
+GET /posts/create
+POST /posts
+POST /posts/{post}/comments
 
-GET /posts/{id} - View one published post
+## Testing
 
-GET /authors/{author} - View author profile
+Run the automated tests:
 
-GET /login - Login page
+    php artisan test
 
-POST /login - Authenticate user
+Run the Lab 11 requirement tests:
 
-POST /logout - Logout
+    php artisan test --filter=Lab11RequirementsTest
 
-GET /posts/create - New post form
+Check routes:
 
-POST /posts - Store a new post
+    php artisan route:list
 
-POST /posts/{post}/comments - Submit comment
+Compile Blade views:
 
-## Technologies Used
+    php artisan view:cache
+
+Check migration status:
+
+    php artisan migrate:status
+
+Automated tests use the configured in-memory SQLite
+testing database.
+
+## Technologies
 
 - Laravel 12
 - PHP
@@ -265,4 +296,5 @@ https://github.com/RedGenilla/LabActivity11-Genilla
 ## Author
 
 Red Isaac D. Genilla
+
 

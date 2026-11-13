@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,23 +14,21 @@ class AuthController extends Controller
         return view('auth.login');
     }
 
-    // Check the user's login credentials.
-    public function login(Request $request)
+    // Authenticate the user.
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+        // Retrieve only validated credentials.
+        $credentials = $request->validated();
 
         if (Auth::attempt($credentials)) {
-            // Create a fresh session after logging in.
+            // Regenerate the session after successful login.
             $request->session()->regenerate();
 
             return redirect('/posts')
                 ->with('status', 'Logged in successfully.');
         }
 
-        // Return to login if the credentials are incorrect.
+        // Show an error when credentials are incorrect.
         return back()
             ->withErrors([
                 'email' => 'Invalid email or password.',
@@ -37,12 +36,12 @@ class AuthController extends Controller
             ->onlyInput('email');
     }
 
-    // Log out the current user.
+    // Log out the authenticated user.
     public function logout(Request $request)
     {
         Auth::logout();
 
-        // Clear the old session.
+        // Invalidate the session and regenerate CSRF token.
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -50,4 +49,5 @@ class AuthController extends Controller
             ->with('status', 'Logged out successfully.');
     }
 }
+
 
