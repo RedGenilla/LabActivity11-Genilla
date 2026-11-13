@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AuthorController;
+use App\Http\Controllers\CommentController;
 
 // Redirect homepage to bulletin posts.
 Route::redirect('/', '/posts');
@@ -24,6 +25,11 @@ Route::post('/logout', [AuthController::class, 'logout'])
 // Public bulletin listing.
 Route::get('/posts', [PostController::class, 'index'])
     ->name('posts.index');
+
+// Only logged-in users may submit comments.
+Route::post('/posts/{post}/comments', [CommentController::class, 'store'])
+    ->middleware('auth')
+    ->name('comments.store');
 
 // Display an individual post.
 Route::get('/posts/{id}', [PostController::class, 'show'])
